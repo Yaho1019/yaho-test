@@ -41,8 +41,9 @@ answers: [
 results: {
 
 cake: {
-title:"딸기 케이크 타입",
-desc:"부드럽고 다정한 성격입니다."
+  title:"딸기 케이크 타입",
+  desc:"부드럽고 다정한 성격입니다.",
+  image:"images/cake.jpg"
 },
 
 jelly: {
