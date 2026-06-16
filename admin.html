@@ -2,63 +2,118 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>관리자 페이지</title>
+<title>테스트 관리자</title>
 <style>
-body{font-family:sans-serif;max-width:800px;margin:auto;padding:30px;background:#fff7fb;}
-input, textarea{width:100%;margin:8px 0 16px;padding:12px;box-sizing:border-box;}
-button{padding:12px 20px;border:0;border-radius:8px;background:#ff5b9a;color:white;cursor:pointer;}
-.card{background:white;padding:16px;margin:12px 0;border-radius:12px;}
+body{font-family:sans-serif;background:#fff7fb;max-width:900px;margin:auto;padding:30px;}
+input,textarea{width:100%;padding:12px;margin:8px 0 16px;box-sizing:border-box;}
+button{padding:12px 18px;border:0;border-radius:10px;background:#ff5b9a;color:white;cursor:pointer;margin:6px 0;}
+.box{background:white;padding:20px;border-radius:18px;margin:18px 0;}
+pre{background:#222;color:#fff;padding:18px;border-radius:12px;white-space:pre-wrap;overflow:auto;}
 </style>
 </head>
 <body>
 
-<h1>테스트 생성기</h1>
+<h1>심리테스트 관리자</h1>
 
+<div class="box">
+<h2>기본 정보</h2>
 <input id="title" placeholder="테스트 제목">
-<textarea id="question" placeholder="질문"></textarea>
-<input id="answer1" placeholder="선택지 1">
-<input id="answer2" placeholder="선택지 2">
-<input id="answer3" placeholder="선택지 3">
+<textarea id="desc" placeholder="테스트 설명"></textarea>
+</div>
 
-<button onclick="saveTest()">테스트 저장</button>
+<div class="box">
+<h2>결과 타입</h2>
+<textarea id="results" rows="10" placeholder="예:
+cake|딸기 케이크 타입|부드럽고 다정합니다.|images/cake.png
+jelly|젤리 타입|자유롭고 유쾌합니다.|images/jelly.png
+choco|초콜릿 타입|차분하고 깊이 있습니다.|images/choco.png"></textarea>
+</div>
 
-<h2>저장된 테스트</h2>
-<div id="testList"></div>
+<div class="box">
+<h2>질문</h2>
+<textarea id="questions" rows="14" placeholder="예:
+좋아하는 간식은?
+케이크|cake:2
+젤리|jelly:2
+초콜릿|choco:2
+
+쉬는 날엔?
+혼자 쉰다|choco:2,cake:1
+친구랑 논다|jelly:2
+맛있는 걸 먹는다|cake:2,jelly:1"></textarea>
+</div>
+
+<button onclick="generateCode()">tests.js 생성</button>
+<button onclick="copyCode()">복사</button>
+
+<h2>생성된 코드</h2>
+<pre id="output"></pre>
 
 <script>
-function saveTest(){
-    const test = {
-        title: document.getElementById("title").value,
-        question: document.getElementById("question").value,
-        answers: [
-            document.getElementById("answer1").value,
-            document.getElementById("answer2").value,
-            document.getElementById("answer3").value
-        ]
-    };
-
-    const tests = JSON.parse(localStorage.getItem("tests") || "[]");
-    tests.push(test);
-    localStorage.setItem("tests", JSON.stringify(tests));
-
-    showTests();
-    alert("저장 완료!");
+function parseScores(text){
+    const obj = {};
+    text.split(",").forEach(pair=>{
+        const [key,value] = pair.split(":");
+        if(key && value) obj[key.trim()] = Number(value.trim());
+    });
+    return obj;
 }
 
-function showTests(){
-    const tests = JSON.parse(localStorage.getItem("tests") || "[]");
-    const list = document.getElementById("testList");
+function generateCode(){
+    const title = document.getElementById("title").value;
+    const desc = document.getElementById("desc").value;
 
-    list.innerHTML = tests.map((test, index) => `
-        <div class="card">
-            <h3>${index + 1}. ${test.title}</h3>
-            <p>${test.question}</p>
-            <p>${test.answers.join(" / ")}</p>
-        </div>
-    `).join("");
+    const resultLines = document.getElementById("results").value.trim().split("\n");
+    const results = {};
+
+    resultLines.forEach(line=>{
+        const [key, rTitle, rDesc, image] = line.split("|");
+        if(key){
+            results[key.trim()] = {
+                title:rTitle?.trim() || "",
+                desc:rDesc?.trim() || "",
+                image:image?.trim() || "",
+                tags:["태그1","태그2"],
+                good:"장점을 입력하세요.",
+                bad:"주의할 점을 입력하세요.",
+                match:"잘 맞는 타입",
+                mismatch:"조금 안 맞는 타입"
+            };
+        }
+    });
+
+    const blocks = document.getElementById("questions").value.trim().split(/\n\s*\n/);
+    const questions = blocks.map(block=>{
+        const lines = block.trim().split("\n");
+        const q = lines[0];
+
+        const answers = lines.slice(1).map(line=>{
+            const [text, scoreText] = line.split("|");
+            return {
+                text:text.trim(),
+                scores:parseScores(scoreText || "")
+            };
+        });
+
+        return {question:q, answers};
+    });
+
+    const code = `const tests = [
+{
+title:${JSON.stringify(title)},
+desc:${JSON.stringify(desc)},
+questions:${JSON.stringify(questions,null,2)},
+results:${JSON.stringify(results,null,2)}
+}
+];`;
+
+    document.getElementById("output").textContent = code;
 }
 
-showTests();
+function copyCode(){
+    navigator.clipboard.writeText(document.getElementById("output").textContent);
+    alert("복사 완료!");
+}
 </script>
 
 </body>

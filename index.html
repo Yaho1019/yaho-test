@@ -6,39 +6,122 @@
 
 <style>
 body{font-family:sans-serif;background:#ffeef6;text-align:center;padding:40px;}
-#container{max-width:700px;margin:auto;}
-.card{background:white;padding:20px;margin:15px 0;border-radius:15px;}
-button{width:100%;padding:14px;margin:8px 0;border:0;border-radius:10px;background:#ff5b9a;color:white;cursor:pointer;}
+#container{max-width:760px;margin:auto;}
+.card{background:white;padding:24px;margin:15px 0;border-radius:18px;}
+button{width:100%;padding:14px;margin:8px 0;border:0;border-radius:10px;background:#ff5b9a;color:white;cursor:pointer;font-size:16px;}
+
+.progress-wrap{background:#ffd1e3;border-radius:999px;margin:20px 0;overflow:hidden;}
+.progress-bar{height:14px;background:#ff5b9a;width:0%;}
+
+img{max-width:320px;width:100%;border-radius:18px;}
+
+.tag{
+    display:inline-block;
+    background:#ffe1ec;
+    color:#ff5b9a;
+    padding:6px 10px;
+    margin:4px;
+    border-radius:999px;
+    font-size:14px;
+}
+
+.info-box{
+    background:#fff7fb;
+    padding:14px;
+    margin:12px 0;
+    border-radius:14px;
+    text-align:left;
+}
+
+.result-card{
+    background:white;
+    padding:28px;
+    border-radius:24px;
+    box-shadow:
+    0 4px 12px rgba(0,0,0,0.08),
+    0 16px 32px rgba(255,91,154,0.20);
+}
+
+.result-title{font-size:28px;margin:16px 0 8px;}
+.result-desc{line-height:1.7;font-size:16px;}
+.result-image{max-width:360px;width:100%;border-radius:22px;}
+
+.percent-row{
+    display:flex;
+    justify-content:space-between;
+    margin-top:14px;
+    font-size:14px;
+}
+
+.percent-wrap{
+    background:#ffe1ec;
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:6px;
+}
+
+.percent-bar{
+    height:10px;
+    background:#ff5b9a;
+    border-radius:999px;
+}
 </style>
 
-<script src="tests.js"></script>
+<script src="test-list.js"></script>
 </head>
 
 <body>
-<div id="container">
-<h1>야호 테스트</h1>
-<div id="testList"></div>
-</div>
+<div id="container"></div>
 
 <script>
 let currentTest = null;
 let currentQuestionIndex = 0;
 let scores = {};
 
-function showList(){
-    const list = document.getElementById("testList");
+function showHome(){
+    document.getElementById("container").innerHTML = `
+        <h1>야호 테스트</h1>
+        <p>원하는 테스트를 골라주세요.</p>
 
-    list.innerHTML = tests.map((test,index)=>`
-        <div class="card">
-            <h2>${test.title}</h2>
-            <p>질문 ${test.questions.length}개</p>
-            <button onclick="startTest(${index})">테스트 시작</button>
-        </div>
-    `).join("");
+        ${testList.map((item, index)=>`
+            <div class="card">
+                <h2>${item.title}</h2>
+                <button onclick="loadTest(${index})">테스트 시작</button>
+            </div>
+        `).join("")}
+    `;
 }
 
-function startTest(index){
-    currentTest = tests[index];
+function loadTest(index){
+    const oldScript = document.getElementById("loaded-test");
+    if(oldScript){
+        oldScript.remove();
+    }
+
+    const script = document.createElement("script");
+    script.id = "loaded-test";
+    script.src = testList[index].file;
+
+    script.onload = function(){
+        currentTest = testData;
+        showStart();
+    };
+
+    document.body.appendChild(script);
+}
+
+function showStart(){
+    document.getElementById("container").innerHTML = `
+        <div class="card">
+            <h1>${currentTest.title}</h1>
+            <p>${currentTest.desc || `총 ${currentTest.questions.length}개의 질문으로 이루어진 테스트입니다.`}</p>
+            <button onclick="startTest()">시작하기</button>
+            <button onclick="showHome()">목록으로</button>
+        </div>
+    `;
+}
+
+function startTest(){
     currentQuestionIndex = 0;
     scores = {};
     showQuestion();
@@ -46,21 +129,33 @@ function startTest(index){
 
 function showQuestion(){
     const question = currentTest.questions[currentQuestionIndex];
+    const progress = (currentQuestionIndex / currentTest.questions.length) * 100;
 
     document.getElementById("container").innerHTML = `
         <h1>${currentTest.title}</h1>
+
+        <div class="progress-wrap">
+            <div class="progress-bar" style="width:${progress}%"></div>
+        </div>
+
         <div class="card">
             <p>${currentQuestionIndex + 1} / ${currentTest.questions.length}</p>
             <h2>${question.question}</h2>
+
             ${question.answers.map(answer=>`
-                <button onclick="selectAnswer('${answer.type}')">${answer.text}</button>
+                <button onclick='selectAnswer(${JSON.stringify(answer.scores)})'>
+                    ${answer.text}
+                </button>
             `).join("")}
         </div>
     `;
 }
 
-function selectAnswer(type){
-    scores[type] = (scores[type] || 0) + 1;
+function selectAnswer(answerScores){
+    for(const type in answerScores){
+        scores[type] = (scores[type] || 0) + answerScores[type];
+    }
+
     currentQuestionIndex++;
 
     if(currentQuestionIndex < currentTest.questions.length){
@@ -83,17 +178,62 @@ function showResult(){
 
     const result = currentTest.results[topType];
 
+    const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);
+
+    const percentHTML = Object.keys(currentTest.results).map(type => {
+        const percent = Math.round(((scores[type] || 0) / totalScore) * 100);
+        const title = currentTest.results[type].title;
+
+        return `
+            <div class="percent-row">
+                <span>${title}</span>
+                <b>${percent}%</b>
+            </div>
+            <div class="percent-wrap">
+                <div class="percent-bar" style="width:${percent}%"></div>
+            </div>
+        `;
+    }).join("");
+
     document.getElementById("container").innerHTML = `
         <h1>결과</h1>
-        <div class="card">
-            <h2>${result.title}</h2>
-            <p>${result.desc}</p>
-            <button onclick="location.reload()">처음으로</button>
+
+        <div class="result-card">
+            <img class="result-image" src="${result.image}">
+            <h2 class="result-title">${result.title}</h2>
+            <p class="result-desc">${result.desc}</p>
+
+            <p>${result.tags.map(tag => `<span class="tag">#${tag}</span>`).join(" ")}</p>
+
+            ${percentHTML}
+
+            <div class="info-box">
+                <h3>장점</h3>
+                <p>${result.good}</p>
+            </div>
+
+            <div class="info-box">
+                <h3>주의할 점</h3>
+                <p>${result.bad}</p>
+            </div>
+
+            <div class="info-box">
+                <h3>잘 맞는 타입</h3>
+                <p>${result.match}</p>
+            </div>
+
+            <div class="info-box">
+                <h3>조금 안 맞는 타입</h3>
+                <p>${result.mismatch}</p>
+            </div>
+
+            <button onclick="showStart()">다시하기</button>
+            <button onclick="showHome()">목록으로</button>
         </div>
     `;
 }
 
-showList();
+showHome();
 </script>
 
 </body>
