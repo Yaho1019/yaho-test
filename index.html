@@ -3,85 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <title>야호 테스트</title>
-
 <style>
-body{
-    font-family:sans-serif;
-    background:#ffeef6;
-    text-align:center;
-    padding:50px;
-}
-
-#container{
-    max-width:600px;
-    margin:auto;
-}
-
-button{
-    display:block;
-    width:100%;
-    margin:10px 0;
-    padding:15px;
-    border:none;
-    border-radius:10px;
-    background:#ff5b9a;
-    color:white;
-    cursor:pointer;
-}
-
-button:hover{
-    opacity:0.9;
-}
+body{font-family:sans-serif;background:#ffeef6;text-align:center;padding:40px;}
+#container{max-width:700px;margin:auto;}
+.card{background:white;padding:20px;margin:15px 0;border-radius:15px;}
+button{width:100%;padding:14px;margin:8px 0;border:0;border-radius:10px;background:#ff5b9a;color:white;cursor:pointer;}
 </style>
 </head>
-
 <body>
 
 <div id="container">
-
-<h1>당신은 어떤 디저트일까?</h1>
-
-<div id="question-area">
-
-<p>좋아하는 간식은?</p>
-
-<button onclick="showResult('cake')">케이크</button>
-<button onclick="showResult('jelly')">젤리</button>
-<button onclick="showResult('choco')">초콜릿</button>
-
-</div>
-
+<h1>야호 테스트</h1>
+<p>원하는 테스트를 골라주세요.</p>
+<div id="testList"></div>
 </div>
 
 <script>
+function showList(){
+    const tests = JSON.parse(localStorage.getItem("tests") || "[]");
+    const list = document.getElementById("testList");
 
-function showResult(type){
+    if(tests.length === 0){
+        list.innerHTML = "<p>아직 저장된 테스트가 없습니다.</p>";
+        return;
+    }
 
-const area=document.getElementById("question-area");
+    list.innerHTML = tests.map((test, index) => `
+        <div class="card">
+            <h2>${test.title}</h2>
+            <p>${test.question}</p>
+            <button onclick="startTest(${index})">테스트 시작</button>
+        </div>
+    `).join("");
+}
 
-if(type==="cake"){
-    area.innerHTML=`
-    <h2>당신은 딸기 케이크 타입!</h2>
-    <p>다정하고 부드러운 성격입니다.</p>
+function startTest(index){
+    const tests = JSON.parse(localStorage.getItem("tests") || "[]");
+    const test = tests[index];
+
+    document.getElementById("container").innerHTML = `
+        <h1>${test.title}</h1>
+        <p>${test.question}</p>
+        ${test.answers.map(answer => `
+            <button onclick="showResult('${answer}')">${answer}</button>
+        `).join("")}
     `;
 }
 
-if(type==="jelly"){
-    area.innerHTML=`
-    <h2>당신은 젤리 타입!</h2>
-    <p>자유롭고 유쾌한 성격입니다.</p>
+function showResult(answer){
+    document.getElementById("container").innerHTML = `
+        <h1>결과</h1>
+        <p>당신의 선택은 <b>${answer}</b> 입니다.</p>
+        <button onclick="location.reload()">처음으로</button>
     `;
 }
 
-if(type==="choco"){
-    area.innerHTML=`
-    <h2>당신은 초콜릿 타입!</h2>
-    <p>겉은 차갑지만 속은 따뜻합니다.</p>
-    `;
-}
-
-}
-
+showList();
 </script>
 
 </body>
