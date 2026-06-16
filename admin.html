@@ -3,57 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <title>관리자 페이지</title>
-
 <style>
-body{
-    font-family:sans-serif;
-    max-width:800px;
-    margin:auto;
-    padding:30px;
-}
-
-input, textarea{
-    width:100%;
-    margin:10px 0;
-    padding:10px;
-}
-
-button{
-    padding:10px 20px;
-}
+body{font-family:sans-serif;max-width:800px;margin:auto;padding:30px;background:#fff7fb;}
+input, textarea{width:100%;margin:8px 0 16px;padding:12px;box-sizing:border-box;}
+button{padding:12px 20px;border:0;border-radius:8px;background:#ff5b9a;color:white;cursor:pointer;}
+.card{background:white;padding:16px;margin:12px 0;border-radius:12px;}
 </style>
 </head>
-
 <body>
 
 <h1>테스트 생성기</h1>
 
 <input id="title" placeholder="테스트 제목">
-
 <textarea id="question" placeholder="질문"></textarea>
+<input id="answer1" placeholder="선택지 1">
+<input id="answer2" placeholder="선택지 2">
+<input id="answer3" placeholder="선택지 3">
 
-<button onclick="saveTest()">
-테스트 저장
-</button>
+<button onclick="saveTest()">테스트 저장</button>
 
-<p id="result"></p>
+<h2>저장된 테스트</h2>
+<div id="testList"></div>
 
 <script>
-
 function saveTest(){
+    const test = {
+        title: document.getElementById("title").value,
+        question: document.getElementById("question").value,
+        answers: [
+            document.getElementById("answer1").value,
+            document.getElementById("answer2").value,
+            document.getElementById("answer3").value
+        ]
+    };
 
-const title =
-document.getElementById("title").value;
+    const tests = JSON.parse(localStorage.getItem("tests") || "[]");
+    tests.push(test);
+    localStorage.setItem("tests", JSON.stringify(tests));
 
-const question =
-document.getElementById("question").value;
-
-document.getElementById("result").innerText =
-"저장 완료!\n\n제목: " + title +
-"\n질문: " + question;
-
+    showTests();
+    alert("저장 완료!");
 }
 
+function showTests(){
+    const tests = JSON.parse(localStorage.getItem("tests") || "[]");
+    const list = document.getElementById("testList");
+
+    list.innerHTML = tests.map((test, index) => `
+        <div class="card">
+            <h3>${index + 1}. ${test.title}</h3>
+            <p>${test.question}</p>
+            <p>${test.answers.join(" / ")}</p>
+        </div>
+    `).join("");
+}
+
+showTests();
 </script>
 
 </body>
