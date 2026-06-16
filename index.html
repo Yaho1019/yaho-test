@@ -3,62 +3,112 @@
 <head>
 <meta charset="UTF-8">
 <title>야호 테스트</title>
+
 <style>
-body{font-family:sans-serif;background:#ffeef6;text-align:center;padding:40px;}
-#container{max-width:700px;margin:auto;}
-.card{background:white;padding:20px;margin:15px 0;border-radius:15px;}
-button{width:100%;padding:14px;margin:8px 0;border:0;border-radius:10px;background:#ff5b9a;color:white;cursor:pointer;}
+body{
+    font-family:sans-serif;
+    background:#ffeef6;
+    text-align:center;
+    padding:40px;
+}
+
+#container{
+    max-width:700px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    margin:15px 0;
+    border-radius:15px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin:8px 0;
+    border:0;
+    border-radius:10px;
+    background:#ff5b9a;
+    color:white;
+    cursor:pointer;
+}
 </style>
+
+<script src="tests.js"></script>
+
 </head>
 <body>
 
 <div id="container">
 <h1>야호 테스트</h1>
-<p>원하는 테스트를 골라주세요.</p>
 <div id="testList"></div>
 </div>
 
 <script>
+
 function showList(){
-    const tests = JSON.parse(localStorage.getItem("tests") || "[]");
-    const list = document.getElementById("testList");
 
-    if(tests.length === 0){
-        list.innerHTML = "<p>아직 저장된 테스트가 없습니다.</p>";
-        return;
-    }
+    const list =
+    document.getElementById("testList");
 
-    list.innerHTML = tests.map((test, index) => `
+    list.innerHTML = tests.map((test,index)=>`
+
         <div class="card">
             <h2>${test.title}</h2>
             <p>${test.question}</p>
-            <button onclick="startTest(${index})">테스트 시작</button>
+
+            <button onclick="startTest(${index})">
+            테스트 시작
+            </button>
+
         </div>
+
     `).join("");
+
 }
 
 function startTest(index){
-    const tests = JSON.parse(localStorage.getItem("tests") || "[]");
+
     const test = tests[index];
 
     document.getElementById("container").innerHTML = `
+
         <h1>${test.title}</h1>
+
         <p>${test.question}</p>
-        ${test.answers.map(answer => `
-            <button onclick="showResult('${answer}')">${answer}</button>
+
+        ${test.answers.map(answer=>`
+
+            <button onclick="showResult('${answer}')">
+            ${answer}
+            </button>
+
         `).join("")}
+
     `;
+
 }
 
 function showResult(answer){
+
     document.getElementById("container").innerHTML = `
+
         <h1>결과</h1>
-        <p>당신의 선택은 <b>${answer}</b> 입니다.</p>
-        <button onclick="location.reload()">처음으로</button>
+
+        <h2>${answer}</h2>
+
+        <button onclick="location.reload()">
+        처음으로
+        </button>
+
     `;
+
 }
 
 showList();
+
 </script>
 
 </body>
