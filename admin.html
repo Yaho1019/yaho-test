@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>관리자 페이지</title>
+
+<style>
+body{
+    font-family:sans-serif;
+    max-width:800px;
+    margin:auto;
+    padding:30px;
+}
+
+input, textarea{
+    width:100%;
+    margin:10px 0;
+    padding:10px;
+}
+
+button{
+    padding:10px 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>테스트 생성기</h1>
+
+<input id="title" placeholder="테스트 제목">
+
+<textarea id="question" placeholder="질문"></textarea>
+
+<button onclick="saveTest()">
+테스트 저장
+</button>
+
+<p id="result"></p>
+
+<script>
+
+function saveTest(){
+
+const title =
+document.getElementById("title").value;
+
+const question =
+document.getElementById("question").value;
+
+document.getElementById("result").innerText =
+"저장 완료!\n\n제목: " + title +
+"\n질문: " + question;
+
+}
+
+</script>
+
+</body>
+</html>
