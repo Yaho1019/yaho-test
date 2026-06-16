@@ -5,110 +5,95 @@
 <title>야호 테스트</title>
 
 <style>
-body{
-    font-family:sans-serif;
-    background:#ffeef6;
-    text-align:center;
-    padding:40px;
-}
-
-#container{
-    max-width:700px;
-    margin:auto;
-}
-
-.card{
-    background:white;
-    padding:20px;
-    margin:15px 0;
-    border-radius:15px;
-}
-
-button{
-    width:100%;
-    padding:14px;
-    margin:8px 0;
-    border:0;
-    border-radius:10px;
-    background:#ff5b9a;
-    color:white;
-    cursor:pointer;
-}
+body{font-family:sans-serif;background:#ffeef6;text-align:center;padding:40px;}
+#container{max-width:700px;margin:auto;}
+.card{background:white;padding:20px;margin:15px 0;border-radius:15px;}
+button{width:100%;padding:14px;margin:8px 0;border:0;border-radius:10px;background:#ff5b9a;color:white;cursor:pointer;}
 </style>
 
 <script src="tests.js"></script>
-
 </head>
-<body>
 
+<body>
 <div id="container">
 <h1>야호 테스트</h1>
 <div id="testList"></div>
 </div>
 
 <script>
+let currentTest = null;
+let currentQuestionIndex = 0;
+let scores = {};
 
 function showList(){
-
-    const list =
-    document.getElementById("testList");
+    const list = document.getElementById("testList");
 
     list.innerHTML = tests.map((test,index)=>`
-
         <div class="card">
             <h2>${test.title}</h2>
-            <p>${test.question}</p>
-
-            <button onclick="startTest(${index})">
-            테스트 시작
-            </button>
-
+            <p>질문 ${test.questions.length}개</p>
+            <button onclick="startTest(${index})">테스트 시작</button>
         </div>
-
     `).join("");
-
 }
 
 function startTest(index){
-
-    const test = tests[index];
-
-    document.getElementById("container").innerHTML = `
-
-        <h1>${test.title}</h1>
-
-        <p>${test.question}</p>
-
-        ${test.answers.map(answer=>`
-
-            <button onclick="showResult('${answer}')">
-            ${answer}
-            </button>
-
-        `).join("")}
-
-    `;
-
+    currentTest = tests[index];
+    currentQuestionIndex = 0;
+    scores = {};
+    showQuestion();
 }
 
-function showResult(answer){
+function showQuestion(){
+    const question = currentTest.questions[currentQuestionIndex];
 
     document.getElementById("container").innerHTML = `
-
-        <h1>결과</h1>
-
-        <h2>${answer}</h2>
-
-        <button onclick="location.reload()">
-        처음으로
-        </button>
-
+        <h1>${currentTest.title}</h1>
+        <div class="card">
+            <p>${currentQuestionIndex + 1} / ${currentTest.questions.length}</p>
+            <h2>${question.question}</h2>
+            ${question.answers.map(answer=>`
+                <button onclick="selectAnswer('${answer.type}')">${answer.text}</button>
+            `).join("")}
+        </div>
     `;
+}
 
+function selectAnswer(type){
+    scores[type] = (scores[type] || 0) + 1;
+    currentQuestionIndex++;
+
+    if(currentQuestionIndex < currentTest.questions.length){
+        showQuestion();
+    }else{
+        showResult();
+    }
+}
+
+function showResult(){
+    let topType = null;
+    let topScore = -1;
+
+    for(const type in scores){
+        if(scores[type] > topScore){
+            topScore = scores[type];
+            topType = type;
+        }
+    }
+
+    const result = currentTest.results[topType];
+
+    document.getElementById("container").innerHTML = `
+        <h1>결과</h1>
+        <div class="card">
+            <h2>${result.title}</h2>
+            <p>${result.desc}</p>
+            <button onclick="location.reload()">처음으로</button>
+        </div>
+    `;
 }
 
 showList();
-
 </script>
 
 </body>
